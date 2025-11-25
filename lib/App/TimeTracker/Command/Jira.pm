@@ -53,7 +53,18 @@ sub _build_jira_client {
 
     my $jira_client;
     try {
-        $jira_client = JIRA::REST->new($config->{server_url}, $config->{username}, $config->{password});
+        my %auth_cfg = ( url => $config->{server_url}, );
+        if ( my $token = $config->{token} ) {
+            $auth_cfg{pat} = $token;
+        }
+        elsif ( my $username = $config->{username} ) {
+            $auth_cfg{username} = $username;
+            $auth_cfg{password} = $config->{password};
+        }
+        else {
+            $auth_cfg{anonymous} = 1;
+        }
+        $jira_client = JIRA::REST->new( \%auth_cfg );
     }
     catch {
         error_message("Could not build JIRA client.\nEither configure username or password in your tracker config, .netrc or via Config::Identity, see perldoc JIRA::REST.\nError was:\n'%s'", $_ );
@@ -323,6 +334,11 @@ Username to connect with.
 
 Password to connect with. Beware: This is stored in clear text! Better use authentication via C<Config::Identity> via C<JIRA::REST> where the credentials can be stored GPG encrypted.
 
+=head3 token [OPTIONAL]
+
+Token to authenticate with. Can be generated in Jira user profile.
+See L<https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html>
+
 =head3 log_time_spent
 
 If set, an entry will be created in the ticket's work log
@@ -392,6 +408,19 @@ __END__
                 "start": { "transition": ["Start Progress", "Restart progress", "Reopen and start progress"], "target_state": "In Progress" },
                 "stop": { "transition": "Stop Progress" }
             }
+        }
+    }
+
+or
+
+    {
+        "plugins" : [
+            "Jira"
+        ],
+        "jira" : {
+            "server_url" : "http://localhost:8080",
+            "token" : "NDc4NDkyNDg3ODE3OstHYSeYC1GnuqRacSqvUbookcZk",
+            "log_time_spent" : "1"
         }
     }
 
