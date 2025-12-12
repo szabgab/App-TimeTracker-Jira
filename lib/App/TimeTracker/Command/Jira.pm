@@ -6,7 +6,7 @@ use 5.010;
 # ABSTRACT: App::TimeTracker Jira plugin
 use App::TimeTracker::Utils qw(error_message warning_message);
 
-our $VERSION = '0.8';
+our $VERSION = '1.0';
 
 use Moose::Role;
 use JIRA::REST ();
